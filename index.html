@@ -2,63 +2,207 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Iframe Renderer</title>
+  <title>Advanced Iframe Tester</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
+    :root {
+      --bg-light: #e5e5e5;
+      --bg-dark: #111;
+      --text-light: #000;
+      --text-dark: #eee;
+      --border: #ccc;
+      --accent: #333;
+    }
+
     body {
       margin: 0;
-      font-family: sans-serif;
+      font-family: Arial, sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 1rem;
-      background-color: #f5f5f5;
+      padding: 2rem;
+      background: var(--bg-light);
+      color: var(--text-light);
+      transition: all 0.3s;
     }
+
+    .container {
+      width: 100%;
+      max-width: 960px;
+    }
+
     .search-bar-container {
       margin-bottom: 1rem;
       display: flex;
       gap: 0.5rem;
+      flex-wrap: wrap;
     }
+
     input[type="url"] {
       padding: 0.5rem;
       width: 300px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: #fff;
     }
+
     button {
       padding: 0.5rem 1rem;
+      border: none;
+      background: var(--accent);
+      color: white;
+      border-radius: 4px;
       cursor: pointer;
+      transition: background 0.2s;
     }
+
+    button:hover {
+      background: #555;
+    }
+
     .iframe-container {
-      width: 100%;
+      position: relative;
       height: 80vh;
-      max-width: 1000px;
-      border: 1px solid #ccc;
+      background: #fff;
+      border: 2px dashed var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
     }
+
     iframe {
       width: 100%;
       height: 100%;
       border: none;
+      display: none;
+    }
+
+    .placeholder {
+      color: #999;
+      font-size: 1.2rem;
+      position: absolute;
+      text-align: center;
+      pointer-events: none;
+    }
+
+    .loading-overlay {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: rgba(255,255,255,0.7);
+      color: #555;
+      font-size: 1.5rem;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+
+    .actions {
+      margin-top: 1rem;
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    body.dark {
+      background: var(--bg-dark);
+      color: var(--text-dark);
+    }
+
+    body.dark input[type="url"] {
+      background: #333;
+      color: white;
+      border-color: #555;
+    }
+
+    body.dark .iframe-container {
+      background: #222;
+    }
+
+    body.dark .loading-overlay {
+      background: rgba(0,0,0,0.6);
+      color: #fff;
     }
   </style>
 </head>
 <body>
-  <div class="search-bar-container">
-    <input id="url-search" type="url" placeholder="Enter a URL" />
-    <button onclick="submit()">Render iframe</button>
-  </div>
-  <div class="iframe-container">
-    <iframe id="iframe-window">
-      <p>Your browser does not support iframes.</p>
-    </iframe>
+  <div class="container">
+    <div class="search-bar-container">
+      <input id="url-search" type="url" placeholder="Enter a URL to test" />
+      <button onclick="submit()">Render iframe</button>
+    </div>
+
+    <div class="iframe-container">
+      <div class="loading-overlay" id="loading">Loading...</div>
+      <div class="placeholder" id="placeholder">Iframe preview will appear here</div>
+      <iframe id="iframe-window"></iframe>
+    </div>
+
+    <div class="actions">
+      <button onclick="toggleTheme()">Toggle Dark/Light</button>
+      <button onclick="openInNewTab()">Open in New Tab</button>
+      <button onclick="fullscreenIframe()">Fullscreen</button>
+    </div>
   </div>
 
   <script>
+    const input = document.getElementById("url-search");
+    const iframe = document.getElementById("iframe-window");
+    const loading = document.getElementById("loading");
+    const placeholder = document.getElementById("placeholder");
+
+    input.focus();
+
     function submit() {
-      const url = document.getElementById("url-search").value;
-      const iframe = document.getElementById("iframe-window");
-      if (url) {
-        iframe.src = url;
+      const url = input.value.trim();
+      if (!url || !isValidUrl(url)) {
+        alert("Please enter a valid URL starting with http:// or https://");
+        return;
+      }
+
+      placeholder.style.display = "none";
+      iframe.style.display = "none";
+      loading.style.display = "flex";
+
+      iframe.onload = () => {
+        loading.style.display = "none";
+        iframe.style.display = "block";
+      };
+
+      iframe.onerror = () => {
+        loading.style.display = "none";
+        alert("This URL cannot be loaded in an iframe. It might be blocked by X-Frame-Options.");
+      };
+
+      iframe.src = url;
+    }
+
+    function isValidUrl(url) {
+      return /^https?:\/\/.+/i.test(url);
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle("dark");
+    }
+
+    function openInNewTab() {
+      const url = input.value.trim();
+      if (isValidUrl(url)) {
+        window.open(url, "_blank");
       } else {
-        alert("Please enter a valid URL.");
+        alert("Enter a valid URL first.");
+      }
+    }
+
+    function fullscreenIframe() {
+      if (iframe.requestFullscreen) {
+        iframe.requestFullscreen();
+      } else if (iframe.webkitRequestFullscreen) {
+        iframe.webkitRequestFullscreen();
+      } else if (iframe.msRequestFullscreen) {
+        iframe.msRequestFullscreen();
       }
     }
   </script>
