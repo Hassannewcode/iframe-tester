@@ -156,9 +156,15 @@
     input.focus();
 
     function submit() {
-      const url = input.value.trim();
-      if (!url || !isValidUrl(url)) {
-        alert("Please enter a valid URL starting with http:// or https://");
+      let url = input.value.trim();
+      if (!url) {
+        alert("Please enter a URL.");
+        return;
+      }
+      url = normalizeUrl(url);
+
+      if (!isValidUrl(url)) {
+        alert("Please enter a valid URL.");
         return;
       }
 
@@ -179,6 +185,13 @@
       iframe.src = url;
     }
 
+    function normalizeUrl(url) {
+      if (!/^https?:\/\//i.test(url)) {
+        url = "https://" + url;
+      }
+      return url;
+    }
+
     function isValidUrl(url) {
       return /^https?:\/\/.+/i.test(url);
     }
@@ -188,7 +201,7 @@
     }
 
     function openInNewTab() {
-      const url = input.value.trim();
+      const url = normalizeUrl(input.value.trim());
       if (isValidUrl(url)) {
         window.open(url, "_blank");
       } else {
